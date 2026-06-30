@@ -2,6 +2,8 @@ name: build-and-deploy
 
 # 触发:手动 + 每天定时重建(拉最新赛程/积分)。比赛日可调更密。
 on:
+  push:
+    branches: [main]       # 推代码到 main 自动部署
   workflow_dispatch:
   schedule:
     - cron: '0 22 * * *'   # UTC 22:00 = 北京时间 06:00,每日一次
@@ -50,7 +52,7 @@ jobs:
           RCLONE_CONFIG_HK_ENDPOINT: oss-cn-hongkong.aliyuncs.com  # OSS 香港地域
           RCLONE_CONFIG_HK_ACCESS_KEY_ID: ${{ secrets.BUCKET_KEY }}
           RCLONE_CONFIG_HK_SECRET_ACCESS_KEY: ${{ secrets.BUCKET_SECRET }}
-          RCLONE_CONFIG_HK_ACL: public-read
+          # 不逐对象设 ACL —— 依赖桶级「公共读」,避免 PutObjectAcl 被拒
 
       # 可选:刷新 CDN 缓存,让新内容立即生效(命令按你用的云厂商 CLI 填)。
       # - name: Refresh CDN cache
