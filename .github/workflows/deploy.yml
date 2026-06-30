@@ -46,8 +46,8 @@ jobs:
         run: rclone sync ./dist hk:${{ vars.BUCKET }} --checksum --delete-during --transfers 16 --fast-list
         env:
           RCLONE_CONFIG_HK_TYPE: s3
-          RCLONE_CONFIG_HK_PROVIDER: TencentCOS              # 阿里云 OSS 改为 Alibaba
-          RCLONE_CONFIG_HK_ENDPOINT: cos.ap-hongkong.myqcloud.com  # OSS:oss-cn-hongkong.aliyuncs.com
+          RCLONE_CONFIG_HK_PROVIDER: Alibaba                       # 阿里云 OSS
+          RCLONE_CONFIG_HK_ENDPOINT: oss-cn-hongkong.aliyuncs.com  # OSS 香港地域
           RCLONE_CONFIG_HK_ACCESS_KEY_ID: ${{ secrets.BUCKET_KEY }}
           RCLONE_CONFIG_HK_SECRET_ACCESS_KEY: ${{ secrets.BUCKET_SECRET }}
           RCLONE_CONFIG_HK_ACL: public-read

@@ -1,6 +1,6 @@
 ---
 import type { AnalystTake } from '../data/types';
-const { take, sourceLabel } = Astro.props as { take: AnalystTake; sourceLabel?: string };
+const { take } = Astro.props as { take: AnalystTake };
 const initial = take.analyst.slice(0, 1);
 ---
 <article class="analyst">
@@ -10,5 +10,5 @@ const initial = take.analyst.slice(0, 1);
     <span class="angle">{take.angle}</span>
   </div>
   <p><slot>{take.quote}</slot></p>
-  <div class="src">{sourceLabel ?? '真人原文'} · {take.sourceDate}</div>
+  <div class="src">{take.sourceDate}</div>
 </article>

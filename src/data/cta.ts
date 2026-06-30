@@ -6,8 +6,8 @@
 export const CTA = {
   enabled: true,
   baseUrl: 'https://www.99haoliao.com',
-  label: '查看实时推荐与完整方案',
-  sub: '前往 99好料',
+  label: '查看本场实时推荐与完整方案',
+  sub: '专家多方案 · 实时更新',
   utm: { source: 'qiutan', medium: 'cta', campaign: 'default' },
 };
 

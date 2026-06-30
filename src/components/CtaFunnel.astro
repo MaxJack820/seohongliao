@@ -10,7 +10,7 @@ const href = ctaUrl({ path, campaign });
   <a class="cta-funnel" href={href} target="_blank" rel="nofollow sponsored noopener">
     <span class="cta-text">
       <span class="cta-label">{label ?? CTA.label}</span>
-      <span class="cta-sub">{CTA.sub}</span>
+      {CTA.sub && <span class="cta-sub">{CTA.sub}</span>}
     </span>
     <span class="cta-arrow" aria-hidden="true">→</span>
   </a>

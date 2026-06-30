@@ -36,17 +36,16 @@ const links: { label: string; href: string; type: PageType }[] = [
 ];
 ---
 <BaseLayout ogType="article" title={`${title} | 球探`}
-  description={`聚合多位博主对${leagueName}重点战的观点:看点、战术、数据多视角对比。真人分析为内核,AI 仅做 extractive 结构化聚合。`}
+  description={`${home.name} vs ${away.name} 赛前多视角解读:聚合多位博主的看点、战术与数据分析。`}
   jsonld={analysisLd(analysis, leagueName)}>
   <Breadcrumb slot="breadcrumb" items={[{ label: '首页', href: '/' }, { label: leagueName, href: `/league/${leagueSlug}` }, { label: '多视角解读' }]} />
 
   <main slot="main">
     <span class="pagetag tag-analysis">深度解读</span>
     <h1>{title}</h1>
-    <p style="color:var(--text-soft);margin-top:0">真人观点为内核,AI 仅做 extractive 聚合与结构化 —— 不改写、不生成观点。</p>
     <section>
       <h2>焦点战 · <a href={`/match/${m.slug}`}>{home.name} vs {away.name}</a></h2>
-      {m.takes.map((take) => <AnalystCard take={take} sourceLabel="摘自真人原文" />)}
+      {m.takes.map((take) => <AnalystCard take={take} />)}
     </section>
     <CtaFunnel campaign={`analysis-${m.fixtureId ?? m.slug}`} />
   </main>

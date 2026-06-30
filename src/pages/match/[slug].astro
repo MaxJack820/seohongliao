@@ -41,6 +41,10 @@ const keyPlayers = [...(home.squad ?? []).slice(0, 3), ...(away.squad ?? []).sli
 const live = isLive(m.status);
 const score = scoreText(m);
 const statusLabel = live ? '直播中' : isFinished(m.status) ? '完场' : '未开始';
+// 世界杯不是联赛:排名是小组排名,侧栏入口用「赛事」
+const isCup = leagueSlug === 'world-cup';
+const rankLabel = isCup ? '小组排名' : '联赛排名';
+const navTitle = isCup ? '赛事' : '联赛';
 ---
 <BaseLayout
   ogType="article"
@@ -64,18 +68,18 @@ const statusLabel = live ? '直播中' : isFinished(m.status) ? '完场' : '未�
     <section>
       <h2>公开数据</h2>
       <div class="data-grid">
-        <div class="stat"><div class="k">联赛排名</div><div class="v">{home.rank || '—'} / {away.rank || '—'}</div></div>
+        <div class="stat"><div class="k">{rankLabel}</div><div class="v">{home.rank || '—'} / {away.rank || '—'}</div></div>
         <div class="stat"><div class="k">近 5 场</div><div class="v" style="font-size:15px">{homeForm || '—'} / {awayForm || '—'}</div></div>
         <div class="stat"><div class="k">状态</div><div class="v" style="font-size:15px">{statusLabel}</div></div>
       </div>
     </section>
 
-    <section>
-      <h2>博主赛前解读 · 多视角聚合</h2>
-      {m.takes.length > 0
-        ? m.takes.map((take) => <AnalystCard take={take} />)
-        : <div class="notice">暂无赛前解读,敬请期待。</div>}
-    </section>
+    {m.takes.length > 0 && (
+      <section>
+        <h2>博主赛前解读 · 多视角聚合</h2>
+        {m.takes.map((take) => <AnalystCard take={take} />)}
+      </section>
+    )}
 
     <CtaFunnel campaign={`match-${m.fixtureId ?? m.slug}`} />
 
@@ -93,6 +97,6 @@ const statusLabel = live ? '直播中' : isFinished(m.status) ? '完场' : '未�
       { label: away.name, href: `/team/${away.slug}`, type: 'team' },
     ]} />
     {keyPlayers.length > 0 && <LinkList title="关键球员" links={keyPlayers.map((p) => ({ label: p.name, href: `/player/${p.slug}`, type: 'player' }))} />}
-    <LinkList title="联赛" links={[{ label: `${leagueName}积分榜与赛程`, href: `/league/${leagueSlug}`, type: 'league' }]} />
+    <LinkList title={navTitle} links={[{ label: `${leagueName}积分榜与赛程`, href: `/league/${leagueSlug}`, type: 'league' }]} />
   </aside>
 </BaseLayout>
