@@ -1,0 +1,57 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import LinkList from '../../components/LinkList.astro';
+import AnalystCard from '../../components/AnalystCard.astro';
+import CtaFunnel from '../../components/CtaFunnel.astro';
+import { loadSite } from '../../lib/source';
+import { analysisLd } from '../../lib/jsonld';
+import type { PageType } from '../../data/types';
+
+// 分析/专题页:为每场「有博主解读」的比赛生成一页(人工内容层驱动,不是 API)。
+export const getStaticPaths = (async () => {
+  const { leagues, teams, matches } = await loadSite();
+  const bySlug = new Map(teams.map((t) => [t.slug, t]));
+  return matches.filter((m) => m.takes.length > 0).map((m) => {
+    const league = leagues.find((l) => l.slug === m.leagueSlug);
+    const home = bySlug.get(m.homeSlug)!, away = bySlug.get(m.awaySlug)!;
+    return {
+      params: { slug: m.slug },
+      props: { m, home, away, leagueName: league?.name ?? m.leagueSlug, leagueSlug: m.leagueSlug },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+const { m, home, away, leagueName, leagueSlug } = Astro.props;
+const title = `${home.name} vs ${away.name} 多视角深度解读:博主们怎么看`;
+const analysis = { slug: m.slug, title, leagueSlug, matchSlugs: [m.slug], intro: '', takes: m.takes };
+
+const links: { label: string; href: string; type: PageType }[] = [
+  { label: `${home.name} vs ${away.name}`, href: `/match/${m.slug}`, type: 'match' },
+  { label: home.name, href: `/team/${home.slug}`, type: 'team' },
+  { label: away.name, href: `/team/${away.slug}`, type: 'team' },
+  ...[...(home.squad ?? []).slice(0, 3), ...(away.squad ?? []).slice(0, 3)].map((p) => ({ label: p.name, href: `/player/${p.slug}`, type: 'player' as const })),
+  { label: leagueName, href: `/league/${leagueSlug}`, type: 'league' },
+];
+---
+<BaseLayout ogType="article" title={`${title} | 球探`}
+  description={`聚合多位博主对${leagueName}重点战的观点:看点、战术、数据多视角对比。真人分析为内核,AI 仅做 extractive 结构化聚合。`}
+  jsonld={analysisLd(analysis, leagueName)}>
+  <Breadcrumb slot="breadcrumb" items={[{ label: '首页', href: '/' }, { label: leagueName, href: `/league/${leagueSlug}` }, { label: '多视角解读' }]} />
+
+  <main slot="main">
+    <span class="pagetag tag-analysis">深度解读</span>
+    <h1>{title}</h1>
+    <p style="color:var(--text-soft);margin-top:0">真人观点为内核,AI 仅做 extractive 聚合与结构化 —— 不改写、不生成观点。</p>
+    <section>
+      <h2>焦点战 · <a href={`/match/${m.slug}`}>{home.name} vs {away.name}</a></h2>
+      {m.takes.map((take) => <AnalystCard take={take} sourceLabel="摘自真人原文" />)}
+    </section>
+    <CtaFunnel campaign={`analysis-${m.fixtureId ?? m.slug}`} />
+  </main>
+
+  <aside slot="aside">
+    <LinkList title="本专题涉及" links={links} />
+  </aside>
+</BaseLayout>

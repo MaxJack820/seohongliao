@@ -1,0 +1,16 @@
+---
+import type { PageType } from '../data/types';
+interface Link { label: string; href: string; type: PageType }
+const { title, links } = Astro.props as { title: string; links: Link[] };
+const dot: Record<PageType, string> = {
+  league: 'dot-league', team: 'dot-team', match: 'dot-match', player: 'dot-player', analysis: 'dot-analysis',
+};
+---
+<div class="aside-block">
+  <h3>{title}</h3>
+  <div class="linklist">
+    {links.map((l) => (
+      <a href={l.href}><span class={`dot ${dot[l.type]}`}></span>{l.label}</a>
+    ))}
+  </div>
+</div>

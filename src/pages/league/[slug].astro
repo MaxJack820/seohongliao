@@ -1,0 +1,146 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import { loadSite } from '../../lib/source';
+import { leagueLd } from '../../lib/jsonld';
+import { isLive, isFinished, scoreText } from '../../lib/matchStatus';
+
+export const getStaticPaths = (async () => {
+  const { leagues, teams, matches } = await loadSite();
+  return leagues.map((league) => ({
+    params: { slug: league.slug },
+    props: {
+      league,
+      teams: teams.filter((t) => t.leagueSlug === league.slug),
+      fixtures: matches
+        .filter((m) => m.leagueSlug === league.slug)
+        .sort((a, b) => a.kickoff.localeCompare(b.kickoff)),
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+const { league, teams, fixtures } = Astro.props;
+const titleTeam = teams[0]?.slug;
+const hasPage = (slug: string) => teams.some((t) => t.slug === slug);
+
+// 非杯赛侧栏迷你积分榜:有榜按排名+积分,季前列全队(积分 —)。
+const miniRows = league.standings.length
+  ? league.standings.map((r, i) => ({ rank: i + 1, slug: r.teamSlug, name: r.teamName, crest: r.crest, pts: r.points as number | null }))
+  : teams.map((t, i) => ({ rank: i + 1, slug: t.slug, name: t.name, crest: t.crest, pts: null as number | null }));
+---
+<BaseLayout
+  title={`${league.name} 积分榜、赛程与赛事分析 | 球探`}
+  description={`${league.name}枢纽页:积分榜/小组赛、赛程比分、全部球队入口与重点比赛的多博主分析。`}
+  jsonld={leagueLd(league)}>
+  <Breadcrumb slot="breadcrumb" items={[{ label: '首页', href: '/' }, { label: league.name }]} />
+
+  <main slot="main">
+    <span class="pagetag tag-league">联赛</span>
+    <div class="team-head">
+      {league.emblem && <img class="crest-img" src={league.emblem} alt={`${league.name} 徽标`} width="48" height="48" style="width:48px;height:48px" />}
+      <h1>{league.name}</h1>
+    </div>
+    <p style="color:var(--text-soft);margin-top:0">{league.season} 赛季</p>
+
+    {league.groups ? (
+      <section>
+        <h2>小组赛积分</h2>
+        <div class="groups-grid">
+          {league.groups.map((g) => (
+            <div class="card group-card">
+              <h3>{g.name}</h3>
+              <table class="tbl"><tbody>
+                {g.rows.map((r, i) => (
+                  <tr class={i < 2 ? 'highlight' : undefined}>
+                    <td>{i + 1}</td>
+                    <td><span class="cell-team">{r.crest && <img class="crest-sm" src={r.crest} alt="" aria-hidden="true" loading="lazy" />}{hasPage(r.teamSlug) ? <a href={`/team/${r.teamSlug}`}>{r.teamName}</a> : r.teamName}</span></td>
+                    <td class="num">{r.played}</td><td class="num">{r.points}</td>
+                  </tr>
+                ))}
+              </tbody></table>
+            </div>
+          ))}
+        </div>
+      </section>
+    ) : (
+      <section>
+        <h2>积分榜</h2>
+        {league.standings.length === 0 ? (
+          <div class="notice">本赛季尚未开始,积分榜将在开赛后更新。</div>
+        ) : (
+          <div class="card" style="padding:0">
+            <table class="tbl">
+              <thead><tr><th>#</th><th>球队</th><th class="num">场次</th><th class="num">胜平负</th><th class="num">净胜</th><th class="num">积分</th></tr></thead>
+              <tbody>
+                {league.standings.map((r, i) => (
+                  <tr class={r.teamSlug === titleTeam ? 'highlight' : undefined}>
+                    <td>{i + 1}</td>
+                    <td><span class="cell-team">{r.crest && <img class="crest-sm" src={r.crest} alt="" aria-hidden="true" />}{hasPage(r.teamSlug) ? <a href={`/team/${r.teamSlug}`}>{r.teamName}</a> : r.teamName}</span></td>
+                    <td class="num">{r.played}</td><td class="num">{r.record}</td>
+                    <td class="num">{r.gd > 0 ? `+${r.gd}` : r.gd}</td><td class="num">{r.points}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    )}
+
+    <section>
+      <h2>赛程与重点分析</h2>
+      <div class="fixtures">
+        {fixtures.map((m) => (
+          <a class="fx-row" href={`/match/${m.slug}`}>
+            <span class="fx-date">{m.kickoff.slice(5, 10)}</span>
+            <span class="fx-side fx-home">
+              <span class="fx-name">{m.homeName}</span>
+              {m.homeCrest && <img class="crest-sm" src={m.homeCrest} alt="" aria-hidden="true" loading="lazy" />}
+            </span>
+            <span class={`fx-vs${isLive(m.status) || isFinished(m.status) ? ' mc-score' : ''}`}>{(isLive(m.status) || isFinished(m.status)) && scoreText(m) ? scoreText(m) : 'VS'}</span>
+            <span class="fx-side fx-away">
+              {m.awayCrest && <img class="crest-sm" src={m.awayCrest} alt="" aria-hidden="true" loading="lazy" />}
+              <span class="fx-name">{m.awayName}</span>
+            </span>
+            <span class="fx-cta">{isLive(m.status) ? <span class="live-badge">直播中</span> : `${m.takes.length ? '解读' : '详情'} →`}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <aside slot="aside">
+    {league.groups ? (
+      <div class="aside-block">
+        <h3>参赛球队({teams.length})</h3>
+        <div class="linklist">
+          {teams.map((t) => (
+            <a href={`/team/${t.slug}`}><span class="dot dot-team"></span>{t.crest && <img class="crest-sm" src={t.crest} alt="" aria-hidden="true" loading="lazy" style="width:18px;height:18px" />}{t.name}</a>
+          ))}
+        </div>
+      </div>
+    ) : (
+      <div class="aside-block">
+        <h3>球队 · 积分{league.standings.length === 0 ? '(季前)' : ''}</h3>
+        <div class="mini-standings">
+          {miniRows.map((r) => (
+            hasPage(r.slug)
+              ? <a class="ms-row" href={`/team/${r.slug}`}>
+                  <span class="ms-rank">{r.rank}</span>
+                  {r.crest && <img class="crest-sm" src={r.crest} alt="" aria-hidden="true" loading="lazy" />}
+                  <span class="ms-name">{r.name}</span>
+                  <span class="ms-pts">{r.pts ?? '—'}</span>
+                </a>
+              : <span class="ms-row">
+                  <span class="ms-rank">{r.rank}</span>
+                  {r.crest && <img class="crest-sm" src={r.crest} alt="" aria-hidden="true" loading="lazy" />}
+                  <span class="ms-name">{r.name}</span>
+                  <span class="ms-pts">{r.pts ?? '—'}</span>
+                </span>
+          ))}
+        </div>
+      </div>
+    )}
+  </aside>
+</BaseLayout>

@@ -1,0 +1,44 @@
+---
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  /** schema.org 结构化数据对象,JSON-LD 注入 */
+  jsonld?: unknown;
+  /** false → 长尾页输出 noindex,follow(合规:薄页防护) */
+  index?: boolean;
+  ogType?: 'website' | 'article';
+}
+const { title, description, jsonld, index = true, ogType = 'website' } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+---
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  {!index && <meta name="robots" content="noindex, follow" />}
+  <meta property="og:type" content={ogType} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <link rel="stylesheet" href="/styles.css" />
+  {jsonld && <script type="application/ld+json" set:html={JSON.stringify(jsonld)} />}
+</head>
+<body>
+  <SiteHeader />
+  <div class="container">
+    <slot name="breadcrumb" />
+    <div class="layout">
+      <main><slot name="main" /></main>
+      <aside><slot name="aside" /></aside>
+    </div>
+  </div>
+  <SiteFooter />
+</body>
+</html>

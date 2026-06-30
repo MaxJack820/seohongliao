@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+# prebuild 下载的自托管 logo(可由 npm run fetch:logos 重新生成)
+public/logos/
+# 绝不提交真实密钥
+.env
+.env.local

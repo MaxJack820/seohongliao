@@ -1,0 +1,57 @@
+name: build-and-deploy
+
+# 触发:手动 + 每天定时重建(拉最新赛程/积分)。比赛日可调更密。
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 22 * * *'   # UTC 22:00 = 北京时间 06:00,每日一次
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # 若 Astro 项目在仓库子目录,把下面改成该目录(如 football-site-astro)
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # 构建:在 GitHub 海外 runner 上跑,可正常访问 API-Football
+      - name: Build (fetch API-Football + 下载 logo + 生成静态站)
+        run: npm run build
+        env:
+          AF_KEY: ${{ secrets.AF_KEY }}
+          AF_SEASON: ${{ vars.AF_SEASON }}        # 如 2026
+          AF_SQUAD_LEAGUES: ${{ vars.AF_SQUAD_LEAGUES }}
+          AF_SQUAD_TEAMS: ${{ vars.AF_SQUAD_TEAMS }}
+          SITE_URL: ${{ vars.SITE_URL }}          # 你的真实域名
+
+      - name: Install rclone
+        run: curl -fsSL https://rclone.org/install.sh | sudo bash
+
+      # 同步 dist 到香港对象存储(增量 + 删除已移除文件)。
+      # 默认腾讯云 COS 香港;阿里云 OSS 见下方注释,改 PROVIDER/ENDPOINT 即可。
+      - name: Sync dist -> Hong Kong bucket
+        run: rclone sync ./dist hk:${{ vars.BUCKET }} --checksum --delete-during --transfers 16 --fast-list
+        env:
+          RCLONE_CONFIG_HK_TYPE: s3
+          RCLONE_CONFIG_HK_PROVIDER: TencentCOS              # 阿里云 OSS 改为 Alibaba
+          RCLONE_CONFIG_HK_ENDPOINT: cos.ap-hongkong.myqcloud.com  # OSS:oss-cn-hongkong.aliyuncs.com
+          RCLONE_CONFIG_HK_ACCESS_KEY_ID: ${{ secrets.BUCKET_KEY }}
+          RCLONE_CONFIG_HK_SECRET_ACCESS_KEY: ${{ secrets.BUCKET_SECRET }}
+          RCLONE_CONFIG_HK_ACL: public-read
+
+      # 可选:刷新 CDN 缓存,让新内容立即生效(命令按你用的云厂商 CLI 填)。
+      # - name: Refresh CDN cache
+      #   run: echo "用 tccli / aliyun CLI 触发 CDN 刷新"

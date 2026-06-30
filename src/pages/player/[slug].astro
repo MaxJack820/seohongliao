@@ -1,0 +1,54 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import LinkList from '../../components/LinkList.astro';
+import { loadSite } from '../../lib/source';
+import { playerLd } from '../../lib/jsonld';
+
+export const getStaticPaths = (async () => {
+  const { leagues, teams, players } = await loadSite();
+  const teamBySlug = new Map(teams.map((t) => [t.slug, t]));
+  return players.map((player) => {
+    const team = teamBySlug.get(player.teamSlug)!;
+    return {
+      params: { slug: player.slug },
+      props: { player, team, league: leagues.find((l) => l.slug === team.leagueSlug) },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+const { player, team, league } = Astro.props;
+---
+<BaseLayout
+  index={false}
+  title={`${player.name} 资料、数据与所属球队 | 球探`}
+  description={`${player.name}球员页:位置、号码、年龄,所属球队${team.name}与相关赛事分析。`}
+  jsonld={playerLd(player, team.name)}>
+  <Breadcrumb slot="breadcrumb" items={[{ label: '首页', href: '/' }, { label: team.name, href: `/team/${team.slug}` }, { label: player.name }]} />
+
+  <main slot="main">
+    <span class="pagetag tag-player">球员</span>
+    <div class="team-head">
+      {player.photo && <img class="player-photo" src={player.photo} alt={`${player.name} 照片`} width="64" height="64" loading="lazy" />}
+      <h1>{player.name}</h1>
+    </div>
+
+    <section>
+      <h2>资料</h2>
+      <div class="data-grid">
+        <div class="stat"><div class="k">位置</div><div class="v" style="font-size:16px">{player.position || '—'}</div></div>
+        <div class="stat"><div class="k">号码</div><div class="v">{player.number ?? '—'}</div></div>
+        <div class="stat"><div class="k">年龄</div><div class="v">{player.age ?? '—'}</div></div>
+        <div class="stat"><div class="k">所属球队</div><div class="v" style="font-size:16px"><a href={`/team/${team.slug}`}>{team.name}</a></div></div>
+      </div>
+    </section>
+  </main>
+
+  <aside slot="aside">
+    <LinkList title="内链" links={[
+      { label: `所属球队 · ${team.name}`, href: `/team/${team.slug}`, type: 'team' },
+      ...(league ? [{ label: league.name, href: `/league/${league.slug}`, type: 'league' as const }] : []),
+    ]} />
+  </aside>
+</BaseLayout>

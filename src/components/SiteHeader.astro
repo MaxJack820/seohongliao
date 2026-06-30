@@ -1,0 +1,13 @@
+---
+import { COMPETITIONS } from '../lib/source';
+// 头部导航从联赛配置生成 —— 加一个联赛,导航自动多一项。
+const nav = COMPETITIONS.map((c) => ({ slug: c.slug, name: c.name }));
+---
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="/">球探 · 赛事分析</a>
+    <nav class="main-nav" aria-label="联赛导航">
+      {nav.map((l) => <a href={`/league/${l.slug}`}>{l.name}</a>)}
+    </nav>
+  </div>
+</header>

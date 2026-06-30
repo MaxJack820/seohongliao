@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadSite } from '../lib/source';
+import { isLive, isFinished, scoreText } from '../lib/matchStatus';
+
+const { leagues, teams, matches } = await loadSite();
+const worldCup = leagues.find((l) => l.slug === 'world-cup');
+const leagueName = (slug: string) => leagues.find((l) => l.slug === slug)?.name ?? '';
+
+// 热门赛事:世界杯优先,再按时间;球队样例取有队徽的前 12
+const hotMatches = [...matches]
+  .sort((a, b) => (a.leagueSlug === 'world-cup' ? -1 : 0) - (b.leagueSlug === 'world-cup' ? -1 : 0) || a.kickoff.localeCompare(b.kickoff))
+  .slice(0, 9);
+const teamSample = teams.filter((t) => t.crest).slice(0, 12);
+---
+<BaseLayout
+  title="球探 · 世界杯与五大联赛赛事分析、赛程比分"
+  description="2026 世界杯 + 英超西甲意甲德甲法甲欧冠:实时赛程比分、积分榜、球队阵容与多视角赛事解读。">
+  <main slot="main">
+    <section class="home-hero">
+      <h1>世界杯与五大联赛 · 赛事分析</h1>
+      <p class="lede">实时赛程比分 · 积分榜 · 阵容 · 多视角赛前赛后解读</p>
+      {worldCup && (
+        <a class="wc-banner" href="/league/world-cup">
+          {worldCup.emblem && <img src={worldCup.emblem} alt="世界杯" />}
+          <span>
+            <span class="wc-t">2026 世界杯进行中</span>
+            <span class="wc-s">小组赛积分 · 淘汰赛赛程比分 · 多视角解读 →</span>
+          </span>
+          <span class="wc-arrow" aria-hidden="true">→</span>
+        </a>
+      )}
+    </section>
+
+    <section>
+      <h2>热门赛事</h2>
+      <div class="card-grid">
+        {hotMatches.map((m, i) => (
+          <a class="match-card reveal" href={`/match/${m.slug}`} style={`--d:${i * 40}ms`}>
+            <div class="mc-meta">{leagueName(m.leagueSlug)} · {m.round}</div>
+            <div class="mc-teams">
+              <span class="mc-side mc-home">
+                <span class="mc-name">{m.homeName}</span>
+                {m.homeCrest && <img src={m.homeCrest} alt="" aria-hidden="true" loading="lazy" />}
+              </span>
+              <span class={`mc-vs${isLive(m.status) || isFinished(m.status) ? ' mc-score' : ''}`}>
+                {isLive(m.status) || isFinished(m.status) ? scoreText(m) || 'VS' : 'VS'}
+              </span>
+              <span class="mc-side mc-away">
+                {m.awayCrest && <img src={m.awayCrest} alt="" aria-hidden="true" loading="lazy" />}
+                <span class="mc-name">{m.awayName}</span>
+              </span>
+            </div>
+            <div class="mc-foot">
+              <span>
+                {isLive(m.status)
+                  ? <span class="live-badge">直播中</span>
+                  : isFinished(m.status) ? '已结束' : m.kickoff.slice(5, 10)}
+              </span>
+              <span>查看分析 →</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section>
+      <h2>联赛</h2>
+      <div class="logo-grid">
+        {leagues.map((l, i) => (
+          <a class="logo-card reveal" href={`/league/${l.slug}`} style={`--d:${i * 40}ms`}>
+            {l.emblem && <img src={l.emblem} alt={l.name} loading="lazy" />}
+            <span>{l.name}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section>
+      <h2>热门球队</h2>
+      <div class="logo-grid">
+        {teamSample.map((t, i) => (
+          <a class="logo-card reveal" href={`/team/${t.slug}`} style={`--d:${i * 30}ms`}>
+            {t.crest && <img src={t.crest} alt={t.name} loading="lazy" />}
+            <span>{t.name}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

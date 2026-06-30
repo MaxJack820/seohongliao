@@ -1,0 +1,17 @@
+---
+import { CTA, ctaUrl } from '../data/cta';
+// 合规要点:rel="nofollow sponsored" —— 这是推广性外链,不向不可索引的目标传权重;
+// target=_blank 不打断前门站的浏览。本站内容须自身有价值,CTA 只是"看完后自然引导"。
+interface Props { path?: string; campaign?: string; label?: string }
+const { path, campaign, label } = Astro.props as Props;
+const href = ctaUrl({ path, campaign });
+---
+{CTA.enabled && (
+  <a class="cta-funnel" href={href} target="_blank" rel="nofollow sponsored noopener">
+    <span class="cta-text">
+      <span class="cta-label">{label ?? CTA.label}</span>
+      <span class="cta-sub">{CTA.sub}</span>
+    </span>
+    <span class="cta-arrow" aria-hidden="true">→</span>
+  </a>
+)}

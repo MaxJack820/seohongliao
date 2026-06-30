@@ -1,0 +1,98 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import LinkList from '../../components/LinkList.astro';
+import AnalystCard from '../../components/AnalystCard.astro';
+import Crest from '../../components/Crest.astro';
+import CtaFunnel from '../../components/CtaFunnel.astro';
+import { loadSite } from '../../lib/source';
+import { matchLd } from '../../lib/jsonld';
+import { isLive, isFinished, scoreText } from '../../lib/matchStatus';
+import type { Team } from '../../data/types';
+
+export const getStaticPaths = (async () => {
+  const { leagues, teams, matches } = await loadSite();
+  const bySlug = new Map(teams.map((t) => [t.slug, t]));
+  return matches.map((m) => {
+    const league = leagues.find((l) => l.slug === m.leagueSlug);
+    const row = (s: string) => league?.standings.find((r) => r.teamSlug === s);
+    return {
+      params: { slug: m.slug },
+      props: {
+        m,
+        home: bySlug.get(m.homeSlug)!,
+        away: bySlug.get(m.awaySlug)!,
+        leagueName: league?.name ?? m.leagueSlug,
+        leagueSlug: m.leagueSlug,
+        homeForm: row(m.homeSlug)?.form ?? '',
+        awayForm: row(m.awaySlug)?.form ?? '',
+      },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+const { m, home, away, leagueName, leagueSlug, homeForm, awayForm } = Astro.props as {
+  m: import('../../data/types').Match; home: Team; away: Team;
+  leagueName: string; leagueSlug: string; homeForm: string; awayForm: string;
+};
+const kickoffLabel = m.kickoff.replace('T', ' ').slice(0, 16);
+const keyPlayers = [...(home.squad ?? []).slice(0, 3), ...(away.squad ?? []).slice(0, 3)];
+const live = isLive(m.status);
+const score = scoreText(m);
+const statusLabel = live ? '直播中' : isFinished(m.status) ? '完场' : '未开始';
+---
+<BaseLayout
+  ogType="article"
+  title={`${home.name} vs ${away.name} 赛前解读与数据 (${leagueName} ${m.round}) | 球探`}
+  description={`${home.name} vs ${away.name}赛前分析:近期战绩、积分位置、赛程信息,以及多位博主的赛前解读聚合。`}
+  jsonld={matchLd(m, home.name, away.name, leagueName)}>
+  <Breadcrumb slot="breadcrumb" items={[{ label: '首页', href: '/' }, { label: leagueName, href: `/league/${leagueSlug}` }, { label: `${home.name} vs ${away.name}` }]} />
+
+  <main slot="main">
+    <span class="pagetag tag-match">赛事</span>
+
+    <div class="match-hero">
+      <div class="meta">{leagueName} · {m.round} · {kickoffLabel}{m.venue ? ` · ${m.venue}` : ''}</div>
+      <div class="versus">
+        <div class="side"><Crest team={home} /><a href={`/team/${home.slug}`}>{home.name}</a></div>
+        <div class={`vs${score ? ' mc-score' : ''}`}>{score || 'VS'}{live && <span class="live-badge" style="margin-top:6px">直播中</span>}</div>
+        <div class="side"><Crest team={away} /><a href={`/team/${away.slug}`}>{away.name}</a></div>
+      </div>
+    </div>
+
+    <section>
+      <h2>公开数据</h2>
+      <div class="data-grid">
+        <div class="stat"><div class="k">联赛排名</div><div class="v">{home.rank || '—'} / {away.rank || '—'}</div></div>
+        <div class="stat"><div class="k">近 5 场</div><div class="v" style="font-size:15px">{homeForm || '—'} / {awayForm || '—'}</div></div>
+        <div class="stat"><div class="k">状态</div><div class="v" style="font-size:15px">{statusLabel}</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>博主赛前解读 · 多视角聚合</h2>
+      {m.takes.length > 0
+        ? m.takes.map((take) => <AnalystCard take={take} />)
+        : <div class="notice">暂无赛前解读,敬请期待。</div>}
+    </section>
+
+    <CtaFunnel campaign={`match-${m.fixtureId ?? m.slug}`} />
+
+    {m.takes.length > 0 && (
+      <section>
+        <h2>相关</h2>
+        <div class="linklist"><a href={`/analysis/${m.slug}`}><span class="dot dot-analysis"></span>多视角深度专题</a></div>
+      </section>
+    )}
+  </main>
+
+  <aside slot="aside">
+    <LinkList title="参赛球队" links={[
+      { label: home.name, href: `/team/${home.slug}`, type: 'team' },
+      { label: away.name, href: `/team/${away.slug}`, type: 'team' },
+    ]} />
+    {keyPlayers.length > 0 && <LinkList title="关键球员" links={keyPlayers.map((p) => ({ label: p.name, href: `/player/${p.slug}`, type: 'player' }))} />}
+    <LinkList title="联赛" links={[{ label: `${leagueName}积分榜与赛程`, href: `/league/${leagueSlug}`, type: 'league' }]} />
+  </aside>
+</BaseLayout>

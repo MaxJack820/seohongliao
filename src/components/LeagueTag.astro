@@ -1,0 +1,9 @@
+---
+import type { League } from '../data/types';
+// 所属联赛标签:可点击的彩色 pill,带联赛徽(若有)。
+const { league } = Astro.props as { league: League };
+---
+<a class="league-tag" href={`/league/${league.slug}`}>
+  {league.emblem && <img src={league.emblem} alt="" width="16" height="16" aria-hidden="true" />}
+  {league.name}
+</a>

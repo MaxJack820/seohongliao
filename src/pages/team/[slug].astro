@@ -1,0 +1,100 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import LinkList from '../../components/LinkList.astro';
+import Crest from '../../components/Crest.astro';
+import LeagueTag from '../../components/LeagueTag.astro';
+import { loadSite } from '../../lib/source';
+import { teamLd } from '../../lib/jsonld';
+import { isLive, isFinished, scoreText } from '../../lib/matchStatus';
+
+export const getStaticPaths = (async () => {
+  const { leagues, teams, matches } = await loadSite();
+  const seen = new Set<string>();
+  return teams.filter((t) => !seen.has(t.slug) && seen.add(t.slug)).map((team) => ({
+    params: { slug: team.slug },
+    props: {
+      team,
+      league: leagues.find((l) => l.slug === team.leagueSlug)!,
+      fixtures: matches
+        .filter((m) => m.homeSlug === team.slug || m.awaySlug === team.slug)
+        .sort((a, b) => a.kickoff.localeCompare(b.kickoff)),
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+const { team, league, fixtures } = Astro.props;
+const squad = team.squad ?? [];
+---
+<BaseLayout
+  title={`${team.name} 赛程、战绩与阵容 | 球探`}
+  description={`${team.name}球队页:本赛季${league?.name ?? ''}赛程与战绩、当前阵容、关联比赛与赛事分析入口。`}
+  jsonld={teamLd(team, league?.name ?? '')}>
+  <Breadcrumb slot="breadcrumb" items={[{ label: '首页', href: '/' }, ...(league ? [{ label: league.name, href: `/league/${league.slug}` }] : []), { label: team.name }]} />
+
+  <main slot="main">
+    <span class="pagetag tag-team">球队</span>
+    <div class="team-head">
+      <Crest team={team} size={56} />
+      <h1>{team.name}</h1>
+      {league && <LeagueTag league={league} />}
+    </div>
+
+    <section>
+      <h2>球队资料</h2>
+      <div class="data-grid">
+        <div class="stat"><div class="k">主场</div><div class="v" style="font-size:16px">{team.venue || '—'}</div></div>
+        <div class="stat"><div class="k">所属联赛</div><div class="v" style="font-size:16px">{league ? <a href={`/league/${league.slug}`}>{league.name}</a> : '—'}</div></div>
+        <div class="stat"><div class="k">当前排名</div><div class="v">{team.rank || '—'}</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>本赛季赛程与战绩</h2>
+      {fixtures.length === 0 ? (
+        <div class="notice">暂无窗口内赛程。调大 <code>AF_NEXT</code> / <code>AF_LAST</code> 可拉取更多。</div>
+      ) : (
+        <div class="card" style="padding:0">
+          <table class="tbl"><tbody>
+            {fixtures.map((m) => {
+              const isHome = m.homeSlug === team.slug;
+              const oppName = isHome ? m.awayName : m.homeName;
+              const oppCrest = isHome ? m.awayCrest : m.homeCrest;
+              const sc = scoreText(m);
+              return (
+                <tr>
+                  <td>{m.kickoff.slice(5, 10)}</td>
+                  <td><span class="cell-team">{isHome ? '主' : '客'} vs {oppCrest && <img class="crest-sm" src={oppCrest} alt="" aria-hidden="true" loading="lazy" />}<a href={`/match/${m.slug}`}>{oppName}</a></span></td>
+                  <td class="num">{isLive(m.status) ? <span class="live-badge">直播 {sc}</span> : sc ? <span class="mc-score">{sc}</span> : <a href={`/match/${m.slug}`}>解读 →</a>}</td>
+                </tr>
+              );
+            })}
+          </tbody></table>
+        </div>
+      )}
+    </section>
+
+    {squad.length > 0 && (
+      <section>
+        <h2>阵容 <span style="font-size:13px;color:var(--text-faint);font-weight:400">({squad.length} 人)</span></h2>
+        <div class="grid-cards">
+          {squad.map((p) => (
+            <a class="player-card" href={`/player/${p.slug}`}>
+              {p.photo && <img class="player-photo-sm" src={p.photo} alt="" aria-hidden="true" loading="lazy" />}
+              <div>
+                <div>{p.name}</div>
+                <div class="sub">{p.position}{p.number != null ? ` · ${p.number} 号` : ''}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </main>
+
+  <aside slot="aside">
+    <LinkList title="近期比赛" links={fixtures.slice(0, 6).map((m) => ({ label: `${m.homeName} vs ${m.awayName}`, href: `/match/${m.slug}`, type: 'match' as const }))} />
+    {league && <LinkList title="联赛" links={[{ label: `${league.name}积分榜与赛程`, href: `/league/${league.slug}`, type: 'league' }]} />}
+  </aside>
+</BaseLayout>

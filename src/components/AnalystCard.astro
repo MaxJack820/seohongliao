@@ -1,0 +1,14 @@
+---
+import type { AnalystTake } from '../data/types';
+const { take, sourceLabel } = Astro.props as { take: AnalystTake; sourceLabel?: string };
+const initial = take.analyst.slice(0, 1);
+---
+<article class="analyst">
+  <div class="by">
+    <div class="avatar">{initial}</div>
+    <span class="name">{take.analyst}</span>
+    <span class="angle">{take.angle}</span>
+  </div>
+  <p><slot>{take.quote}</slot></p>
+  <div class="src">{sourceLabel ?? '真人原文'} · {take.sourceDate}</div>
+</article>

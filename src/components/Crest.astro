@@ -1,0 +1,9 @@
+---
+import type { Team } from '../data/types';
+// 队徽:有 crest URL 就渲染图片,否则回退到三字母文字徽(保证永远有东西显示)。
+const { team, size = 56 } = Astro.props as { team: Team; size?: number };
+const initials = team.enName.slice(0, 3).toUpperCase();
+---
+{team.crest
+  ? <img class="crest-img" src={team.crest} alt={`${team.name} 队徽`} width={size} height={size} loading="lazy" style={`width:${size}px;height:${size}px`} />
+  : <span class="crest" style={`width:${size}px;height:${size}px`}>{initials}</span>}
