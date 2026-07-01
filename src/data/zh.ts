@@ -17,6 +17,7 @@ export const TEAM_ZH: Record<string, string> = {
   'athletic-club': '毕尔巴鄂竞技', 'girona': '赫罗纳', 'celta-vigo': '塞尔塔', 'osasuna': '奥萨苏纳',
   'getafe': '赫塔菲', 'rayo-vallecano': '巴列卡诺', 'mallorca': '马洛卡', 'espanyol': '西班牙人',
   'alaves': '阿拉维斯', 'las-palmas': '拉斯帕尔马斯', 'leganes': '莱加内斯', 'real-valladolid': '巴利亚多利德',
+  'levante': '莱万特', 'malaga': '马拉加', 'deportivo-la-coruna': '拉科鲁尼亚', 'racing-santander': '桑坦德竞技',
   // 意甲
   'inter': '国际米兰', 'ac-milan': 'AC米兰', 'juventus': '尤文图斯', 'napoli': '那不勒斯',
   'as-roma': '罗马', 'lazio': '拉齐奥', 'atalanta': '亚特兰大', 'fiorentina': '佛罗伦萨',
@@ -54,7 +55,12 @@ export const TEAM_ZH: Record<string, string> = {
   'uzbekistan': '乌兹别克斯坦', 'jordan': '约旦', 'congo-dr': '刚果(金)', 'new-zealand': '新西兰',
   'honduras': '洪都拉斯', 'bolivia': '玻利维亚', 'greece': '希腊', 'romania': '罗马尼亚', 'hungary': '匈牙利',
   'bosnia-herzegovina': '波黑', 'czechia': '捷克', 'czech-republic': '捷克', 'turkiye': '土耳其',
-  'curacao': '库拉索', 'cape-verde': '佛得角', 'haiti': '海地', 'new-caledonia': '新喀里多尼亚',
+  'curacao': '库拉索', 'cape-verde': '佛得角', 'cape-verde-islands': '佛得角', 'haiti': '海地', 'new-caledonia': '新喀里多尼亚',
+  // 欧冠资格赛常见小队
+  'kauno-zalgiris': '考纳斯日尔吉里斯', 'drita': '德里塔', 'vardar-skopje': '瓦尔达尔',
+  'kups': '库普斯', 'ararat-armenia': '阿拉拉特亚美尼亚', 'riga': '里加FC',
+  'lincoln-red-imps-fc': '林肯红魔', 'inter-club-descaldes': '埃斯卡尔德斯国际',
+  'sabah-fa': '萨巴赫', 'the-new-saints': '新圣徒', 'borac-banja-luka': '巴尼亚卢卡',
 };
 
 // 位置

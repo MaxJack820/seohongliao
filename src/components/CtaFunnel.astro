@@ -1,16 +1,43 @@
 ---
 import { CTA, ctaUrl } from '../data/cta';
+import { isFinished, isLive } from '../lib/matchStatus';
 // 合规要点:rel="nofollow sponsored" —— 这是推广性外链,不向不可索引的目标传权重;
 // target=_blank 不打断前门站的浏览。本站内容须自身有价值,CTA 只是"看完后自然引导"。
-interface Props { path?: string; campaign?: string; label?: string }
-const { path, campaign, label } = Astro.props as Props;
+interface Props { path?: string; campaign?: string; label?: string; sub?: string; status?: string }
+const { path, campaign, label, sub, status } = Astro.props as Props;
 const href = ctaUrl({ path, campaign });
+const state = isLive(status) ? 'live' : isFinished(status) ? 'finished' : 'upcoming';
+const copy = {
+  upcoming: {
+    label: '查看本场实时推荐与完整方案',
+    sub: '专家多方案 · 开赛前持续更新',
+  },
+  live: {
+    label: '查看本场实时更新与滚动方案',
+    sub: '赛中动态 · 多方案同步更新',
+  },
+  finished: {
+    label: '查看赛后复盘与今日新方案',
+    sub: '完场数据 · 最新赛事继续更新',
+  },
+}[state];
+const finalLabel = label ?? copy.label;
+const finalSub = sub ?? CTA.subByState?.[state] ?? copy.sub;
 ---
 {CTA.enabled && (
-  <a class="cta-funnel" href={href} target="_blank" rel="nofollow sponsored noopener">
+  <a
+    class={`cta-funnel cta-${state}`}
+    href={href}
+    target="_blank"
+    rel="nofollow sponsored noopener"
+    data-cta="funnel"
+    data-campaign={campaign ?? CTA.utm.campaign}
+    data-label={finalLabel}
+    aria-label={finalLabel}
+  >
     <span class="cta-text">
-      <span class="cta-label">{label ?? CTA.label}</span>
-      {CTA.sub && <span class="cta-sub">{CTA.sub}</span>}
+      <span class="cta-label">{finalLabel}</span>
+      {finalSub && <span class="cta-sub">{finalSub}</span>}
     </span>
     <span class="cta-arrow" aria-hidden="true">→</span>
   </a>

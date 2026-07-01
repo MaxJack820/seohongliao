@@ -8,6 +8,11 @@ export const CTA = {
   baseUrl: 'https://www.99haoliao.com',
   label: '查看本场实时推荐与完整方案',
   sub: '专家多方案 · 实时更新',
+  subByState: {
+    upcoming: '专家多方案 · 开赛前持续更新',
+    live: '赛中动态 · 多方案同步更新',
+    finished: '完场数据 · 最新赛事继续更新',
+  },
   utm: { source: 'qiutan', medium: 'cta', campaign: 'default' },
 };
 

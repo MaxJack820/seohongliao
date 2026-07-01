@@ -13,6 +13,7 @@ interface Props {
 }
 const { title, description, jsonld, index = true, ogType = 'website' } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ctaAnalyticsEndpoint = import.meta.env.PUBLIC_CTA_ANALYTICS_ENDPOINT ?? '';
 ---
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -29,14 +30,31 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
   <meta property="og:url" content={canonical} />
   <link rel="stylesheet" href="/styles.css" />
   {jsonld && <script type="application/ld+json" set:html={JSON.stringify(jsonld)} />}
+  <script is:inline define:vars={{ ctaAnalyticsEndpoint }}>
+    window.addEventListener('click', (event) => {
+      const link = event.target && event.target.closest ? event.target.closest('a[data-cta="funnel"]') : null;
+      if (!link) return;
+      const payload = {
+        type: 'cta_click',
+        href: link.href,
+        campaign: link.dataset.campaign || '',
+        sourcePath: window.location.pathname,
+        label: link.dataset.label || link.textContent.trim(),
+        ts: Date.now(),
+      };
+      window.dispatchEvent(new CustomEvent('qiutan:cta-click', { detail: payload }));
+      if (!ctaAnalyticsEndpoint || !navigator.sendBeacon) return;
+      navigator.sendBeacon(ctaAnalyticsEndpoint, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    });
+  </script>
 </head>
 <body>
   <SiteHeader />
   <div class="container">
     <slot name="breadcrumb" />
     <div class="layout">
-      <main><slot name="main" /></main>
-      <aside><slot name="aside" /></aside>
+      <slot name="main" />
+      <slot name="aside" />
     </div>
   </div>
   <SiteFooter />

@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="页面未找到 · 球探"
+  description="你访问的页面不存在。返回球探首页查看世界杯与主流联赛赛程、比分和赛事分析。"
+  index={false}>
+  <main slot="main">
+    <span class="pagetag tag-match">404</span>
+    <h1>页面未找到</h1>
+    <section>
+      <p>这个页面可能已经更新或不存在。你可以回到首页,或查看世界杯、英超等赛事入口。</p>
+      <div class="linklist">
+        <a href="/"><span class="dot dot-match"></span>返回首页</a>
+        <a href="/league/world-cup"><span class="dot dot-league"></span>世界杯赛程</a>
+        <a href="/league/premier-league"><span class="dot dot-league"></span>英超赛程</a>
+      </div>
+    </section>
+  </main>
+</BaseLayout>

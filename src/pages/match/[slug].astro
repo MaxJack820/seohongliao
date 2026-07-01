@@ -41,6 +41,8 @@ const keyPlayers = [...(home.squad ?? []).slice(0, 3), ...(away.squad ?? []).sli
 const live = isLive(m.status);
 const score = scoreText(m);
 const statusLabel = live ? '直播中' : isFinished(m.status) ? '完场' : '未开始';
+const hasTakes = m.takes.length > 0;
+const description = `${home.name} vs ${away.name}赛前分析:近期战绩、积分位置、赛程信息,以及多位博主的赛前解读聚合。`;
 // 世界杯不是联赛:排名是小组排名,侧栏入口用「赛事」
 const isCup = leagueSlug === 'world-cup';
 const rankLabel = isCup ? '小组排名' : '联赛排名';
@@ -49,7 +51,7 @@ const navTitle = isCup ? '赛事' : '联赛';
 <BaseLayout
   ogType="article"
   title={`${home.name} vs ${away.name} 赛前解读与数据 (${leagueName} ${m.round}) | 球探`}
-  description={`${home.name} vs ${away.name}赛前分析:近期战绩、积分位置、赛程信息,以及多位博主的赛前解读聚合。`}
+  description={description}
   jsonld={matchLd(m, home.name, away.name, leagueName)}>
   <Breadcrumb slot="breadcrumb" items={[{ label: '首页', href: '/' }, { label: leagueName, href: `/league/${leagueSlug}` }, { label: `${home.name} vs ${away.name}` }]} />
 
@@ -74,16 +76,16 @@ const navTitle = isCup ? '赛事' : '联赛';
       </div>
     </section>
 
-    {m.takes.length > 0 && (
+    {hasTakes && (
       <section>
         <h2>博主赛前解读 · 多视角聚合</h2>
         {m.takes.map((take) => <AnalystCard take={take} />)}
       </section>
     )}
 
-    <CtaFunnel campaign={`match-${m.fixtureId ?? m.slug}`} />
+    <CtaFunnel status={m.status} campaign={`match-${m.fixtureId ?? m.slug}`} />
 
-    {m.takes.length > 0 && (
+    {hasTakes && (
       <section>
         <h2>相关</h2>
         <div class="linklist"><a href={`/analysis/${m.slug}`}><span class="dot dot-analysis"></span>多视角深度专题</a></div>

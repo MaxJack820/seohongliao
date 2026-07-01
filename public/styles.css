@@ -370,6 +370,8 @@ a.ms-row:hover { background: var(--bg-soft); text-decoration: none; }
   color: var(--match);
 }
 .cta-funnel:hover { text-decoration: none; filter: brightness(0.98); }
+.cta-live { border-color: var(--live); color: var(--live); background: rgba(238, 75, 43, 0.08); }
+.cta-finished { border-color: var(--analysis); color: var(--analysis); background: var(--analysis-bg); }
 .cta-label { display: block; font-weight: 500; font-size: 15px; }
 .cta-sub { display: block; font-size: 12px; opacity: 0.8; margin-top: 2px; }
 .cta-arrow { font-size: 20px; font-weight: 500; flex: 0 0 auto; }

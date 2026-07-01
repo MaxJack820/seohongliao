@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+---
+<BaseLayout
+  title="内容声明 · 球探"
+  description="球探内容声明:本站提供赛事数据、赛程比分和体育信息整理,不提供下注服务,不承诺任何结果。">
+  <Breadcrumb slot="breadcrumb" items={[{ label: '首页', href: '/' }, { label: '内容声明' }]} />
+
+  <main slot="main">
+    <span class="pagetag tag-analysis">声明</span>
+    <h1>内容声明</h1>
+    <section>
+      <p>本站内容用于赛事信息整理与体育内容参考,包括赛程、比分、积分榜、球队资料和赛事分析入口。</p>
+      <p>本站不提供下注服务,不代替用户作出任何决策,也不承诺任何比赛结果、收益或命中率。</p>
+      <p>页面中的外部链接可能指向合作或第三方服务。访问第三方站点前,请自行确认其规则、风险和适用范围。</p>
+    </section>
+  </main>
+
+  <aside slot="aside">
+    <div class="aside-block">
+      <h3>相关</h3>
+      <div class="linklist">
+        <a href="/about"><span class="dot dot-team"></span>关于球探</a>
+        <a href="/"><span class="dot dot-match"></span>返回首页</a>
+      </div>
+    </div>
+  </aside>
+</BaseLayout>
