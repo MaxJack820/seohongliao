@@ -5,7 +5,7 @@
 
 export const CTA = {
   enabled: true,
-  baseUrl: 'https://www.99haoliao.com',
+  baseUrl: 'http://DkYOl9kU529e4PcWJtU.99haoliao.com',
   label: '查看本场实时推荐与完整方案',
   sub: '专家多方案 · 实时更新',
   subByState: {
