@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="欧冠">
+  <rect width="64" height="64" rx="14" fill="#f8f8fb"/>
+  <g fill="none" stroke="#20114f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="32" cy="32" r="14"/>
+    <path d="M32 10v44M10 32h44"/>
+    <path d="M17.8 19.2c8.4 4.6 19.8 4.6 28.4 0M17.8 44.8c8.4-4.6 19.8-4.6 28.4 0"/>
+    <path d="M19.2 17.8c4.6 8.4 4.6 19.8 0 28.4M44.8 17.8c-4.6 8.4-4.6 19.8 0 28.4"/>
+  </g>
+  <g fill="#20114f">
+    <circle cx="32" cy="6.5" r="3.2"/>
+    <circle cx="32" cy="57.5" r="3.2"/>
+    <circle cx="6.5" cy="32" r="3.2"/>
+    <circle cx="57.5" cy="32" r="3.2"/>
+    <circle cx="14" cy="14" r="2.6"/>
+    <circle cx="50" cy="14" r="2.6"/>
+    <circle cx="14" cy="50" r="2.6"/>
+    <circle cx="50" cy="50" r="2.6"/>
+  </g>
+</svg>

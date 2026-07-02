@@ -6,7 +6,9 @@ on:
     branches: [main]       # 推代码到 main 自动部署
   workflow_dispatch:
   schedule:
-    - cron: '0 22 * * *'   # UTC 22:00 = 北京时间 06:00,每日一次
+    # 世界杯比赛日按北京时间 06:00/08:00/10:00/12:00/14:00 重建,
+    # 覆盖早场完赛后的状态、比分、积分榜刷新。
+    - cron: '0 22,0,2,4,6 * * *'
 
 concurrency:
   group: deploy

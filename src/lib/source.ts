@@ -18,6 +18,15 @@ export const remoteLogo = (local: string): string | null => {
   return m ? `https://media.api-sports.io/football/${m[1]}/${m[2]}.png` : null;
 };
 
+function scoreFromFixture(f: any): { home: number | null; away: number | null } {
+  const status = f.fixture?.status?.short;
+  const fulltime = f.score?.fulltime;
+  if (['FT', 'AET', 'PEN'].includes(status) && fulltime?.home != null && fulltime?.away != null) {
+    return { home: fulltime.home, away: fulltime.away };
+  }
+  return { home: f.goals?.home ?? null, away: f.goals?.away ?? null };
+}
+
 // ============================================================
 // 数据源:从 API-Football 拉取联赛/球队/积分榜/赛程,映射成站点数据类型。
 // build 时调用一次(loadSite 做 promise 记忆化),所有页面的 getStaticPaths 共享同一份结果。
@@ -116,8 +125,10 @@ async function build(): Promise<SiteData> {
 
       const lg = (leagueResp as any[])[0]?.league;
       const isCup = comp.slug === 'world-cup' || comp.slug === 'champions-league';
-      // 世界杯:API 返回的是通用灰盾(无官方标志授权),改用自定义奖杯徽。
-      const emblem = comp.slug === 'world-cup' ? '/crests/world-cup.svg' : localizeLogo(lg?.logo);
+      // 世界杯/欧冠使用自托管图标,避免 API 图片漏传或 CDN 缓存导致破图。
+      const emblem = comp.slug === 'world-cup'
+        ? '/crests/world-cup.svg'
+        : comp.slug === 'champions-league' ? '/crests/champions-league.svg' : localizeLogo(lg?.logo);
       leagues.push({
         slug: comp.slug, name: comp.name, enName: lg?.name ?? comp.slug,
         season: isCup ? `${SEASON}` : `${SEASON}/${String((SEASON + 1) % 100).padStart(2, '0')}`,
@@ -145,7 +156,7 @@ async function build(): Promise<SiteData> {
           homeCrest: localizeLogo(home.logo), awayCrest: localizeLogo(away.logo),
           kickoff: f.fixture.date, venue: VENUE_ZH[venue] ?? venue ?? '',
           round: localizeRound(f.league.round),
-          status: f.fixture.status?.short, score: { home: f.goals.home, away: f.goals.away },
+          status: f.fixture.status?.short, score: scoreFromFixture(f),
           takes: takesByFixture[f.fixture.id] ?? [],
         });
       }
